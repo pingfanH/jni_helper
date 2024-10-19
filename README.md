@@ -5,7 +5,7 @@
 
 ## Usage
  -  create build.rs in you project root
- - ```rust
+    ```rust
     use jni_helper;
     fn main() {
     jni_helper::kt("your/path/RustNative.kt","your/bin/kotlinc.bat","src/kt_jni.rs");//kt
