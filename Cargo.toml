@@ -1,7 +1,11 @@
 [package]
 name = "jni_helper"
 version = "0.1.0"
-edition = "2021"
-
+authors = ["pingfanH <pingfanh1145@gmail.com>"]
+description = "java function descriptor generate"
+license = "MIT"
+repository = "https://github.com/pingfanH/jni_helper"
+homepage = "https://github.com/pingfanH/jni_helper"
+keywords = ["java","kotlin","rust","generate"]
 [dependencies]
 regex = "1.11.0"
