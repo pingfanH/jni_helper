@@ -1,6 +1,6 @@
 package top.pingfanh.jni;
 
-public class Native {
+public class RustNative {
     static {
         System.loadLibrary("ping"); // 加载你的 JNI 库
     }
