@@ -1,5 +1,6 @@
-use regex::Regex;
 
+extern crate regex;
+use regex::Regex;
 #[derive(Debug)]
 pub struct Fun{
     pub(crate) sig:String,

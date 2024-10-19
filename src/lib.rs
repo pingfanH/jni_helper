@@ -8,6 +8,8 @@ use std::io;
 use std::io::{Read, Write};
 use std::process::{Command, Stdio};
 use regex::Regex;
+
+extern crate regex;
 use utils::*;
 
 pub fn main(workspace:&str,file_name:&str,kotlinc_path:&str){
@@ -42,7 +44,7 @@ pub fn main(workspace:&str,file_name:&str,kotlinc_path:&str){
 
     // 将输出读取到字符串中
     reader.read_to_string(&mut output_string).expect("Failed to read output");
-    let funs = Fun::decode(output_string);
+    let funs = Fun::new(output_string);
     println!("funs {:?}",funs);
     let code = generate_code(paclage,file_name,funs);
     std::fs::write("src/jni.rs", code).expect("can not create jni.rs");
