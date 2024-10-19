@@ -13,5 +13,5 @@
     jni_helper::custom("your/path/RustNative.kt",vec!["your/bin/javac","-d","classes/java","-encoding","UTF-8"],"src/java_jni.rs");//custom
     }
     ```
- - use **include!()** in your lib.rs
+ - **include!()** jni.rs in your lib.rs
  - PS:If there are Chinese characters in the Java file, you need to include "-encoding", "UTF-8" in custom javac
