@@ -117,9 +117,9 @@ fn code(){
 
 #[test]
 fn test() {
-    //let  java_path = "examples/RustNative.java"; // Kotlin 文件所在的路径
+    let  java_path = "examples/RustNative.java"; // Kotlin 文件所在的路径
     let kt_path = "examples/RustNative.kt"; // Kotlin 文件所在的路径
-    //java(java_path,"examples/java_jni.rs");
+    java(java_path,"examples/java_jni.rs");
     kt(kt_path,"D:/BIN/kotlinc/bin/kotlinc.bat","examples/kt_jni.rs");
 }
 

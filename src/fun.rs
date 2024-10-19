@@ -15,8 +15,14 @@ impl Fun {
         while index < lines.len() {
             let line = lines.get(index).unwrap();
             if line.contains("native") {
-                let re = Regex::new(r"public\s+native\s+([\w\.]+)\s+(\w+)\s*\(").unwrap();
-                for cap in re.captures_iter(line) {
+                let re = Regex::new(r"public\s+final\s+native\s+([\w\.]+)\s+(\w+)\s*\(").unwrap();
+                let re1 = Regex::new(r"public\s+native\s+([\w\.]+)\s+(\w+)\s*\(").unwrap();
+                let caps = if re.captures_iter(line).count()>0{
+                    re.captures_iter(line)
+                }else{
+                    re1.captures_iter(line)
+                } ;
+                for cap in caps {
                     if let Some(matched_type) = cap.get(1) {
                         if let Some(matched_name) = cap.get(2) {
                             let name = matched_name.as_str().to_string();
