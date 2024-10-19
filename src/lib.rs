@@ -6,31 +6,58 @@ use std::fmt::Debug;
 use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use regex::Regex;
 
 extern crate regex;
 use utils::*;
-
-pub fn main(workspace:&str,file_name:&str,kotlinc_path:&str){
-    #[cfg(target_os = "windows")]
-    let kotlinc_path = format!("{}\\kotlinc.bat", kotlinc_path);
-    #[cfg(not(target_os = "windows"))]
-    let kotlinc_path = format!("{}\\kotlinc", kotlinc_path);
-    let paclage = get_package(workspace,file_name);
-    // 编译 Kotlin 文件
-    let mut compile_result = Command::new(kotlinc_path)
-        .args([&format!("{}{}", workspace, file_name), "-d", "target/classes"])
+///
+/// # Java
+/// - file_path: java file path
+/// - rs: generated rs file path
+pub fn java(file_path:&str,rs:&str){
+    main(file_path,vec!["javac","-encoding","UTF-8","-d","target/classes"],rs);
+}
+///
+/// # Kotlin
+/// - file_path: kt file path
+/// - compiler: compiler path
+/// - rs: generated rs file path
+pub fn kt(file_path:&str,compiler:&str,rs:&str){
+    // #[cfg(target_os = "windows")]
+    // let kotlinc_path = format!("{}\\kotlinc.bat", compiler);
+    // #[cfg(not(target_os = "windows"))]
+    // let kotlinc_path = format!("{}\\kotlinc", kotlinc_path);
+    main(file_path,vec![compiler,"-d","target/classes"],rs);
+}
+///
+/// # Custom
+/// - file_path: kt/java file path
+/// - compiler: compiler args
+/// - rs: generated rs file path
+pub fn custom(file_path:&str,compiler:Vec<&str>,rs:&str){
+    main(file_path,compiler,rs);
+}
+pub fn main(file_path:&str, compiler:Vec<&str>, rs:&str){
+    let mut compiler = compiler.iter().map(|&s| s.to_ascii_lowercase()).collect::<Vec<String>>();
+    let file_path = Path::new(file_path);
+    let file_name = file_path.file_name().unwrap().to_str().unwrap();
+    let package = get_package(file_path.to_path_buf());
+    let java_flag = file_name.contains(".java");
+    compiler.push(file_path.to_str().unwrap().to_string());
+    println!("Command: {:?}",  Command::new(compiler[0].clone())
+        .args(compiler[1..].iter()));
+    let mut compile_result = Command::new(compiler[0].clone())
+        .args(compiler[1..].iter())
         .spawn()
-        .expect("make sure kotlinc exists");
+        .expect("make sure compiler exists");
 
-    // 等待编译完成
     let _ = compile_result.wait().expect("failed to wait on child");
 
-    // 获取 Java 类文件名
     let class_name = remove_last_dot_suffix(file_name);
     let javap_cmd = Command::new("javap")
-        .args(["-s", &format!("target/classes/{}/{}.class",paclage.replace(".","/"), class_name)])
+        .args(["-s", &format!("target/classes/{}/{}.class",package.replace(".","/"), class_name)])
         .stdout(Stdio::piped()) // 捕获标准输出
         .spawn()
         .expect("make sure javap exists");
@@ -44,10 +71,10 @@ pub fn main(workspace:&str,file_name:&str,kotlinc_path:&str){
 
     // 将输出读取到字符串中
     reader.read_to_string(&mut output_string).expect("Failed to read output");
-    let funs = Fun::new(output_string);
-    println!("funs {:?}",funs);
-    let code = generate_code(paclage,file_name,funs);
-    std::fs::write("src/jni.rs", code).expect("can not create jni.rs");
+    println!("{}", output_string);
+    let funs = if java_flag{Fun::java(output_string)}else{Fun::kt(output_string)};
+    let code = generate_code(package,file_name,funs);
+    std::fs::write(rs, code).expect(&format!("can not create {}",rs));
 }
 
 pub fn generate_code(package:String,file_name:&str,funs:Vec<Fun>)->String{
@@ -81,19 +108,19 @@ pub fn generate_code(package:String,file_name:&str,funs:Vec<Fun>)->String{
 
 #[test]
 fn code(){
-    let funs:Vec<Fun> = Vec::from(
-        [Fun { sig: "(Ljava/lang/String;)Ljava/lang/String;".to_string(), name: "greeting".to_string() },
-            Fun { sig: "(Ljava/lang/String;)Ljava/lang/String;".to_string(), name: "add".to_string() }
-        ]);
+    let funs:Vec<Fun> = vec![
+        Fun { sig: "(Ljava/lang/String;)Ljava/lang/String;".to_string(), name: "greeting".to_string() },
+        Fun { sig: "(Ljava/lang/String;)Ljava/lang/String;".to_string(), name: "add".to_string() }
+    ];
     generate_code("top.pingfanh.jni".to_string(), "RustNative.kt", funs);
 }
 
 #[test]
 fn test() {
-    let kt_path = ""; // Kotlin 文件所在的路径
-    let kt_file = "RustNative.kt";
-    let kotlinc_path = "D:\\BIN\\kotlinc\\bin\\";
-    main(kt_path,kt_file,kotlinc_path);
+    //let  java_path = "examples/RustNative.java"; // Kotlin 文件所在的路径
+    let kt_path = "examples/RustNative.kt"; // Kotlin 文件所在的路径
+    //java(java_path,"examples/java_jni.rs");
+    kt(kt_path,"D:/BIN/kotlinc/bin/kotlinc.bat","examples/kt_jni.rs");
 }
 
 #[test]
@@ -116,7 +143,7 @@ public final class RustNative {
     descriptor: ()V
 }
     "#;
-    let mut lines = input.lines().map(|x| x.to_string()).collect::<Vec<String>>();
+    let lines = input.lines().map(|x| x.to_string()).collect::<Vec<String>>();
     let mut funs:Vec<Fun>=Vec::new();
     // 通过索引循环遍历每一行
     let mut index = 0;
@@ -150,16 +177,9 @@ public final class RustNative {
     println!("funs {:?}",funs)
 }
 #[test]
-fn package(){
+fn package() {
     let kt_path = ""; // Kotlin 文件所在的路径
     let kt_file = "RustNative.kt";
     let package = &format!("{}{}", kt_path, kt_file);
     let content = String::from_utf8(std::fs::read(package).unwrap()).unwrap();
-    for line in content.lines(){
-        if line.contains("package "){
-           let package =line.replace("package ","").replace(";","").trim().to_string();
-            println!("{}", package);
-        }
-    }
-
 }

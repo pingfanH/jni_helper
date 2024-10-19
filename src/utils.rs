@@ -1,7 +1,7 @@
+use std::path::{Path, PathBuf};
 
-pub fn get_package(kt_path:&str,kt_file:&str)->String{
-    let package = &format!("{}{}", kt_path, kt_file);
-    let content = String::from_utf8(std::fs::read(package).unwrap()).unwrap();
+pub fn get_package(path:PathBuf) ->String{
+    let content = String::from_utf8(std::fs::read(path).unwrap()).unwrap();
     for line in content.lines(){
         if line.contains("package "){
             let package =line.replace("package ","").replace(";","").trim().to_string();
