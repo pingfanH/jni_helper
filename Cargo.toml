@@ -4,8 +4,8 @@ version = "0.1.3"
 authors = ["pingfanH <pingfanh1145@gmail.com>"]
 description = "java function descriptor generate"
 license = "MIT"
+documentation = "https://docs.rs/jni_helper/"
 repository = "https://github.com/pingfanH/jni_helper"
-homepage = "https://github.com/pingfanH/jni_helper"
 keywords = ["java","kotlin","rust","generate"]
 [dependencies]
 regex = "1.11.0"
