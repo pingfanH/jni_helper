@@ -15,3 +15,4 @@
     ```
  - **include!()** jni.rs in your lib.rs
  - PS:If there are Chinese characters in the Java file, you need to include "-encoding", "UTF-8" in custom javac
+# Demo(https://github.com/pingfanH/rust_android_jni_demo)
