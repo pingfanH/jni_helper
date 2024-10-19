@@ -1,6 +1,6 @@
 [package]
 name = "jni_helper"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["pingfanH <pingfanh1145@gmail.com>"]
 description = "java function descriptor generate"
 license = "MIT"
